@@ -14,16 +14,17 @@ const employeeSchema  =  mongoose.Schema({
         type: String,
         required: [true, 'Please Enter your last  name'],
       },
-      jobPosition: {type: String},
-      phone:{
+      phoneNumber:{
         type: String,
         required: [true, 'Please enter your phone number'],
         },
-        institution: {
+      
+      institution: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Institution",
             required: true,
         },
       createdAt: { type:Date, default:  Date.now},
 })
+
 module.exports = mongoose.model("Employee", employeeSchema)
