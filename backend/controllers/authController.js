@@ -83,3 +83,14 @@ exports.login  =  catchAsyncError(async(req,res, next)=>{
 
 })
 
+//get all users
+exports.getAllUsers = catchAsyncError(async(req, res, next)=>{
+  const users = await User.find({}).populate({path:"employee", select:["firstName","lastName"]});
+  if (!users) {
+      return  next(new ErrorHandler(`No users found`))
+  }
+  res.status(200).json({
+      success: true, 
+     data: users
+ }) 
+})

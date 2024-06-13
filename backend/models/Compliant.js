@@ -26,7 +26,7 @@ const compliantSchema  =  mongoose.Schema({
     default: 'አዲስ'  },
   compliantAttachment: [
     { 
-    fileName: { type: String, required: true },
+     fileUrl: { type: String, required: true },
     fileType: { type: String, required: true },
     }
   ]

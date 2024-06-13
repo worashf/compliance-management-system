@@ -1,64 +1,84 @@
+const mongoose = require("mongoose")
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
 const Compliant  = require("../models/Compliant")
 const  ErrorHandler =  require("../utils/errorHandler")
 const catchAsyncError = require("../middlewares/catchAsyncError")
 
 exports.createCompliant = catchAsyncError(async (req, res, next) => {
   const {
-    employeeId,
-    compliantCategory,
-    compliantTitle,
-    compliantDescription,
-    compliantEventDate,
-    compliantSourceInstitution,
-     wantToBeDone,
-    employeeInstitution
-  } = req.body;
-
-  console.log(req.body, "body");
-  
-  const attachmentDocuments = req.files.map(attachment => ({
-    fileName: attachment.filename,
-    fileType: attachment.mimetype,
-  }));
- console.log(attachmentDocuments, "documents")
-  try {
-    const compliant = await Compliant.create({
-      compliantTitle,
+      employeeId,
       compliantCategory,
+      compliantTitle,
       compliantDescription,
       compliantEventDate,
       compliantSourceInstitution,
-      requesterEmployee: employeeId,
       wantToBeDone,
-      compliantAttachment: attachmentDocuments,
-    });
+      employeeInstitution
+  } = req.body;
 
-    if (!compliant) {
-      throw new ErrorHandler("Something went wrong, Compliant was not created", 401);
-    }
+  const images = req.files;
+  console.log(images, "uploaded files");
 
-    res.json({
-      success: true,
-      compliant
-    });
+  let attachmentDocuments = [];
+
+  const uploadToCloudinary = (fileBuffer) => {
+      return new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream((error, result) => {
+              if (error) {
+                  return reject(error);
+              }
+              resolve(result);
+          });
+
+          streamifier.createReadStream(fileBuffer).pipe(stream);
+      });
+  };
+
+  for (let i = 0; i < images.length; i++) {
+      const result = await uploadToCloudinary(images[i].buffer);
+      attachmentDocuments.push({
+          fileUrl: result.secure_url,
+          fileType: images[i].mimetype,
+      });
+  }
+
+  try {
+      const compliant = await Compliant.create({
+          compliantTitle,
+          compliantCategory,
+          compliantDescription,
+          compliantEventDate,
+          compliantSourceInstitution,
+          requesterEmployee: employeeId,
+          wantToBeDone,
+          compliantAttachment: attachmentDocuments,
+      });
+
+      if (!compliant) {
+          throw new ErrorHandler("Something went wrong, Compliant was not created", 401);
+      }
+
+      res.json({
+          success: true,
+          compliant
+      });
   } catch (error) {
-    return next(error);
+      return next(error);
   }
 });
 
 
 //get all compliants
 exports.getAllCompliants = catchAsyncError(async(req, res, next)=>{
-  
-  const employeeId = req.params.employeeId;
-  if(!employeeId){
-    res.status(400).json({
-      success: true, 
-     message: "employee id is required"
- }) 
- return ;
+   let query  ={}
+  const employeeId = req.query.employeeId;
+  if(employeeId){
+    query.requesterEmployee  =  employeeId
   }
-  const compliants = await Compliant.find({requesterEmployee: employeeId}).populate({
+  console.log(__dirname, "dir")
+  console.log(employeeId, "ome")
+  const compliants = await Compliant.find(query).populate({
     path: "compliantSourceInstitution"
   })
   .populate({
@@ -72,3 +92,40 @@ exports.getAllCompliants = catchAsyncError(async(req, res, next)=>{
      data: compliants
  }) 
 })
+
+exports.getSingleCompliant = catchAsyncError(async (req, res, next) => {
+  const { compliantId } = req.params;
+
+  if (!compliantId) {
+    return res.status(400).json({
+      success: false,
+      message: "Compliant ID is required",
+    });
+  }
+
+  try {
+    const compliant = await Compliant.findOne({ _id: compliantId })
+      .populate({ path: "compliantSourceInstitution" })
+      .populate({ path: "requesterEmployee" });
+
+    if (!compliant) {
+      return next(new ErrorHandler(`No compliant found with ID: ${compliantId}`));
+    }
+
+    // Ensure compliantAttachment is an array before mapping
+    if (Array.isArray(compliant.compliantAttachment)) {
+      compliant.compliantAttachment = compliant.compliantAttachment.map(attachment => 
+        `${process.env.APP_URL}attachments/compliants/${attachment.fileName}`
+      );
+    } else {
+      compliant.compliantAttachment = [];
+    }
+
+    res.status(200).json({
+      success: true,
+      data: compliant,
+    });
+  } catch (error) {
+    next(error);
+  }
+});

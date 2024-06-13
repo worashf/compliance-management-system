@@ -68,7 +68,7 @@ exports.deleteEmployee = catchAsyncError(async(req, res, next)=>{
 
 //get all employees
 exports.getAllEmployees = catchAsyncError(async(req, res, next)=>{
-    const employees = await Employee.find({})
+    const employees = await Employee.find({}).populate({path: "institution", select: ["institutionName", "institutionCategory"]})
     if (!employees) {
         return  next(new ErrorHandler(`No employees found`))
     }

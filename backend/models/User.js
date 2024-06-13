@@ -19,6 +19,7 @@ const userSchema = mongoose.Schema({
     enum: ['COMPLIANT', 'COMPLIANCE_TEAM_LEADER', 'HEAD_OF_OFFICE', "ADMIN"],
     default: 'COMPLIANT' 
   },
+  status:{ type : Boolean, default: true},
   employee:{
     type: mongoose.Schema.Types.ObjectId,
     ref: "Employee",
