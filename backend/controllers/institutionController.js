@@ -61,7 +61,7 @@ exports.deleteInstitution = catchAsyncError(async(req, res, next)=>{
 
 //get all employees
 exports.getAllInstitutions = catchAsyncError(async(req, res, next)=>{
-    const institutions = await Institution.find({}).select("  institutionName   institutionCategory")
+    const institutions = await Institution.find({}).select("  institutionName   institutionCategory").limit(200)
     if (!institutions) {
         return  next(new ErrorHandler(`No institutions found`))
     }

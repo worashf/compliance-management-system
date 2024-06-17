@@ -29,7 +29,10 @@ const compliantSchema  =  mongoose.Schema({
      fileUrl: { type: String, required: true },
     fileType: { type: String, required: true },
     }
-  ]
+  ],
+  comlianceRecieptDate: {type: Date, default: Date.now},
+  createdAt : {type: Date, default: Date.now},
+  updatedAt : {type: Date, default: null}
   
 })
 module.exports  = mongoose.model("Compliant", compliantSchema)

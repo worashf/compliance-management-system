@@ -5,9 +5,12 @@ const crypto = require("crypto");
 const userSchema = mongoose.Schema({
   email: {
     type: String,
-    required: [true, 'Please enter your email'],
     unique: true,
   },
+  phoneNumber:{
+    type: String,
+    required: [true, 'Please enter your phone number'],
+    },
   password: {
     type: String,
     required: [true, 'Please enter your password'],
@@ -50,7 +53,7 @@ userSchema.methods.comparePassword = async function (
 }
 userSchema.methods.JsonWebToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE_TIME,
+    expiresIn: "1d",
   });
 };
 

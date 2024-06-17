@@ -3,7 +3,8 @@ const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 const Compliant  = require("../models/Compliant")
 const  ErrorHandler =  require("../utils/errorHandler")
-const catchAsyncError = require("../middlewares/catchAsyncError")
+const catchAsyncError = require("../middlewares/catchAsyncError");
+
 
 exports.createCompliant = catchAsyncError(async (req, res, next) => {
   const {
@@ -76,14 +77,13 @@ exports.getAllCompliants = catchAsyncError(async(req, res, next)=>{
   if(employeeId){
     query.requesterEmployee  =  employeeId
   }
-  console.log(__dirname, "dir")
-  console.log(employeeId, "ome")
+
   const compliants = await Compliant.find(query).populate({
     path: "compliantSourceInstitution"
   })
   .populate({
     path: "requesterEmployee"
-  });
+  }).sort({_id: -1})
   if (!compliants) {
       return  next(new ErrorHandler(`No compliants found`))
   }
@@ -92,6 +92,56 @@ exports.getAllCompliants = catchAsyncError(async(req, res, next)=>{
      data: compliants
  }) 
 })
+
+
+//get all  InValid compliants
+exports.getAllInValidCompliants = catchAsyncError(async(req, res, next)=>{
+  let query  ={}
+ const status = "አግባብነት የሌለው";
+ if(status){
+   query.status  =  status
+ }
+
+ const compliants = await Compliant.find(query).populate({
+   path: "compliantSourceInstitution"
+ })
+ .populate({
+   path: "requesterEmployee"
+ }).sort({_id: -1})
+ if (!compliants) {
+     return  next(new ErrorHandler(`No compliants found`))
+ }
+ res.status(200).json({
+     success: true, 
+    data: compliants
+}) 
+})
+
+
+//get all Valid compliants
+exports.getValidAllCompliants = catchAsyncError(async(req, res, next)=>{
+  let query  ={}
+ const status = req.query.employeeId;
+
+   query.status =  "አግባብነት ያለው"
+ 
+
+ const compliants = await Compliant.find(query).populate({
+   path: "compliantSourceInstitution"
+ })
+ .populate({
+   path: "requesterEmployee"
+ }).sort({_id: -1})
+ if (!compliants) {
+     return  next(new ErrorHandler(`No compliants found`))
+ }
+ res.status(200).json({
+     success: true, 
+    data: compliants
+}) 
+})
+
+
 
 exports.getSingleCompliant = catchAsyncError(async (req, res, next) => {
   const { compliantId } = req.params;
@@ -106,21 +156,21 @@ exports.getSingleCompliant = catchAsyncError(async (req, res, next) => {
   try {
     const compliant = await Compliant.findOne({ _id: compliantId })
       .populate({ path: "compliantSourceInstitution" })
-      .populate({ path: "requesterEmployee" });
+      .populate({ path: "requesterEmployee" , populate: { path: "institution" }});
 
     if (!compliant) {
       return next(new ErrorHandler(`No compliant found with ID: ${compliantId}`));
     }
 
     // Ensure compliantAttachment is an array before mapping
-    if (Array.isArray(compliant.compliantAttachment)) {
+    if (compliant.compliantAttachment?.length > 0) {
       compliant.compliantAttachment = compliant.compliantAttachment.map(attachment => 
-        `${process.env.APP_URL}attachments/compliants/${attachment.fileName}`
+        `${process.env.APP_URL}attachments/${attachment.fileUrl}`
       );
     } else {
       compliant.compliantAttachment = [];
     }
-
+ console.log(compliant, "compliant")
     res.status(200).json({
       success: true,
       data: compliant,

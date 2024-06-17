@@ -31,6 +31,7 @@ if(employee){
     email,
     password,
     role,
+    phoneNumber:phoneNumber,
     employee: employee._id
   });
   if (!user) {
@@ -47,13 +48,13 @@ res.status(200).json({
 })
 
 exports.login  =  catchAsyncError(async(req,res, next)=>{
-    const { email, password } = req.body
+    const { phoneNumber, password } = req.body
    // check if email and password entered by user
-   if (!email || !password) {
-     return next(new ErrorHandler("Please enter email & password",400))
+   if (!phoneNumber || !password) {
+     return next(new ErrorHandler("Please enter phone number & password",400))
    }
    // find user in database
-   const user = await User.findOne({ email }).select("+password").populate({
+   const user = await User.findOne({phoneNumber }).select("+password").populate({
     path: 'employee',
     populate: {
         path: 'institution',
@@ -61,12 +62,12 @@ exports.login  =  catchAsyncError(async(req,res, next)=>{
     }
 });
    if (!user) {
-     return next(new ErrorHandler("Invalid Email or Password",401))
+     return next(new ErrorHandler("Invalid Phone Number or Password",401))
    }
   // checks if password is correct or not 
    const isPasswordMatched = await user.comparePassword(password)
    if (!isPasswordMatched) {
-     return next(new ErrorHandler("Invalid email or password",401))
+     return next(new ErrorHandler("Invalid Phone number or password",401))
    }
 
 
