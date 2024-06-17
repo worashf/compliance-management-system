@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const path = require('path');
 const env = require('dotenv');
+const multer  = require("multer")
 const rawBody = require('raw-body');
 const upload = multer()
 // Route imports
