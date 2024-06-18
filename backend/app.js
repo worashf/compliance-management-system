@@ -60,6 +60,6 @@ app.use((err, req, res, next) => {
 });
 
 // Uncomment the error middleware if you have custom error handling
-// app.use(errorMidleWare);
+app.use(errorMidleWare);
 
 module.exports = app;
