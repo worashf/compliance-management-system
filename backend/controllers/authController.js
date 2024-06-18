@@ -5,7 +5,6 @@ const catchAsyncError = require("../middlewares/catchAsyncError")
 
 exports.signup  =  catchAsyncError(async(req,res, next)=>{
  const { 
-   email,
    password,
    role,
    firstName,
@@ -28,7 +27,6 @@ exports.signup  =  catchAsyncError(async(req,res, next)=>{
 }
 if(employee){
   const user  =  await User.create({
-    email,
     password,
     role,
     phoneNumber:phoneNumber,

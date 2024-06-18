@@ -3,10 +3,6 @@ const bcrpt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require("crypto");
 const userSchema = mongoose.Schema({
-  email: {
-    type: String,
-    unique: true,
-  },
   phoneNumber:{
     type: String,
     required: [true, 'Please enter your phone number'],
